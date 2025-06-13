@@ -1,0 +1,1225 @@
+ <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SplitEase - Splitwise Clone</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Google Fonts - Poppins -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif; /* Changed to Poppins */
+            background: linear-gradient(135deg, #1a2a3a, #2a3a4a); /* Darker, more refined gradient */
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 20px;
+            box-sizing: border-box;
+            color: #ecf0f1; /* Soft white text */
+            overflow-y: auto; /* Allow scrolling on body */
+        }
+
+        .glass-container {
+            backdrop-filter: blur(10px);
+            background-color: rgba(40, 55, 70, 0.4); /* Adjusted semi-transparent dark */
+            border: 1px solid rgba(60, 80, 100, 0.5); /* Adjusted border color */
+            border-radius: 15px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            padding: 24px;
+            margin-bottom: 20px;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .glass-input, .glass-select {
+            background-color: rgba(60, 80, 100, 0.6); /* Darker semi-transparent input */
+            border: 1px solid rgba(80, 100, 120, 0.7); /* Slightly lighter border */
+            color: #ecf0f1;
+            padding: 10px 15px;
+            border-radius: 8px;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+
+        .glass-input::placeholder, .glass-select option {
+            color: rgba(236, 240, 241, 0.7);
+        }
+
+        .glass-input:focus, .glass-select:focus {
+            outline: none;
+            border-color: rgba(236, 240, 241, 0.7);
+            box-shadow: 0 0 0 3px rgba(236, 240, 241, 0.2);
+        }
+
+        .glass-select option {
+            background-color: #2a3a4a; /* Darker background for options */
+        }
+
+        .glass-button {
+            background-color: rgba(80, 100, 120, 0.5); /* Adjusted default button background */
+            border: 1px solid rgba(100, 120, 140, 0.6);
+            color: #ecf0f1;
+            padding: 10px 20px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+        }
+
+        .glass-button:hover {
+            background-color: rgba(100, 120, 140, 0.6); /* Slightly lighter on hover */
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Specific button color adjustments */
+        .glass-button.bg-blue-600 { /* Changed to indigo in JS, but keeping class for styling override */
+            background-color: #4f46e5; /* Indigo-600 */
+            border-color: #4338ca; /* Indigo-700 */
+        }
+        .glass-button.bg-blue-600:hover {
+            background-color: #4338ca; /* Indigo-700 */
+        }
+
+        .glass-button.bg-red-500 {
+            background-color: #ef4444; /* Red-500 */
+            border-color: #dc2626; /* Red-600 */
+        }
+        .glass-button.bg-red-500:hover {
+            background-color: #dc2626; /* Red-600 */
+        }
+
+
+        .glass-list-item {
+            background-color: rgba(52, 73, 94, 0.2); /* Soft background for list items */
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid rgba(73, 94, 115, 0.3);
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6); /* Darker overlay for modal */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .modal.open {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background-color: rgba(44, 62, 80, 0.6); /* Darker modal background */
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(73, 94, 115, 0.5);
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            color: #ecf0f1;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+            max-width: 90%; /* For mobile */
+            max-height: 90vh; /* For mobile */
+            overflow-y: auto; /* Allow scrolling within modal if content is long */
+        }
+
+        .modal.open .modal-content {
+            transform: scale(1);
+        }
+
+        /* Unequal split inputs styling */
+        .unequal-split-input-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .unequal-split-input-group input {
+            flex-grow: 1;
+            margin-right: 10px;
+        }
+
+        /* Responsive adjustments */
+        @media (min-width: 768px) {
+            .app-container {
+                max-width: 800px;
+            }
+            .modal-content {
+                max-width: 500px; /* Wider on desktop */
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex justify-center items-start py-10">
+
+    <div class="app-container w-full max-w-md mx-auto p-4 md:p-6 space-y-6">
+
+        <!-- Header -->
+        <header class="text-center mb-6 relative">
+            <h1 id="app-title" class="text-4xl md:text-5xl font-extrabold text-white leading-tight drop-shadow-lg">SplitEase</h1>
+            <p id="app-subtitle" class="text-xl text-white text-opacity-80 mt-2">Simplify group expenses</p>
+            <p id="user-id-display" class="text-sm text-white text-opacity-60 mt-4"></p>
+            <button id="settings-button" class="absolute top-0 right-0 glass-button p-3 rounded-full text-xl hover:bg-gray-700 transition-all duration-300">
+                <i class="fas fa-cog"></i>
+            </button>
+            <button id="back-to-splits-button" class="absolute top-0 left-0 glass-button p-3 rounded-full text-xl hover:bg-gray-700 transition-all duration-300 hidden">
+                <i class="fas fa-arrow-left"></i>
+            </button>
+        </header>
+
+        <!-- Splits Page -->
+        <div id="splits-page">
+            <section class="glass-container">
+                <h2 class="text-2xl font-bold mb-4">Your Splits</h2>
+                <div class="flex flex-col sm:flex-row gap-3 mb-4">
+                    <input type="text" id="new-split-name-input" class="glass-input flex-grow" placeholder="Enter new split name" aria-label="New Split Name">
+                    <button id="add-split-button" class="glass-button w-full sm:w-auto flex-shrink-0">
+                        <i class="fas fa-plus mr-2"></i>Create Split
+                    </button>
+                </div>
+                <div class="mt-4">
+                    <h3 class="text-xl font-semibold mb-2">Available Splits:</h3>
+                    <ul id="splits-list" class="space-y-2">
+                        <!-- Splits will be dynamically added here -->
+                        <li class="text-white text-opacity-70">Loading splits...</li>
+                    </ul>
+                </div>
+            </section>
+        </div>
+
+        <!-- Main App Sections (Participants, Expenses, Balances) -->
+        <div id="main-app-sections" class="hidden">
+            <!-- Add Participant Section -->
+            <section id="participant-section" class="glass-container">
+                <h2 class="text-2xl font-bold mb-4">Add Participant</h2>
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <input type="text" id="participant-name-input" class="glass-input flex-grow" placeholder="Enter participant name" aria-label="Participant Name">
+                    <button id="add-participant-button" class="glass-button w-full sm:w-auto flex-shrink-0">
+                        <i class="fas fa-user-plus mr-2"></i>Add Participant
+                    </button>
+                </div>
+                <div class="mt-4">
+                    <h3 class="text-xl font-semibold mb-2">Participants:</h3>
+                    <ul id="participants-list" class="space-y-2">
+                        <!-- Participants will be dynamically added here -->
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Add Expense Section -->
+            <section id="expense-section" class="glass-container">
+                <h2 class="text-2xl font-bold mb-4">Add Expense</h2>
+                <div class="mb-4 space-y-3">
+                    <div>
+                        <label for="expense-description-input" class="block text-sm font-medium mb-1">Description</label>
+                        <input type="text" id="expense-description-input" class="glass-input" placeholder="e.g., Dinner, Groceries" aria-label="Expense Description">
+                    </div>
+                    <div>
+                        <label for="expense-amount-input" class="block text-sm font-medium mb-1">Amount</label>
+                        <input type="number" id="expense-amount-input" class="glass-input" placeholder="e.g., 50.00" min="0" step="0.01" aria-label="Expense Amount">
+                    </div>
+                    <div>
+                        <label for="paid-by-select" class="block text-sm font-medium mb-1">Paid By</label>
+                        <select id="paid-by-select" class="glass-select" aria-label="Paid By">
+                            <option value="" disabled selected>Select who paid</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Split Type</label>
+                        <div class="flex gap-4">
+                            <label class="inline-flex items-center">
+                                <input type="radio" name="split-type" value="equal" checked class="form-radio text-white focus:ring-transparent focus:ring-offset-transparent">
+                                <span class="ml-2 text-white">Equal</span>
+                            </label>
+                            <label class="inline-flex items-center">
+                                <input type="radio" name="split-type" value="unequal" class="form-radio text-white focus:ring-transparent focus:ring-offset-transparent">
+                                <span class="ml-2 text-white">Unequal</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div id="split-among-equal" class="mb-4">
+                        <label class="block text-sm font-medium mb-1">Split Among</label>
+                        <div id="split-among-checkboxes" class="flex flex-wrap gap-2">
+                            <!-- Participants for equal split will be dynamically added here -->
+                        </div>
+                    </div>
+                    <div id="split-among-unequal" class="mb-4 hidden">
+                        <label class="block text-sm font-medium mb-1">Unequal Shares</label>
+                        <div id="unequal-shares-inputs" class="space-y-2">
+                            <!-- Inputs for unequal shares will be dynamically added here -->
+                        </div>
+                    </div>
+                </div>
+                <button id="add-expense-button" class="glass-button w-full">
+                    <i class="fas fa-hand-holding-usd mr-2"></i>Add Expense
+                </button>
+                <div class="mt-6">
+                    <h3 class="text-xl font-semibold mb-2">Recent Expenses:</h3>
+                    <ul id="expenses-list" class="space-y-2">
+                        <!-- Expenses will be dynamically added here -->
+                    </ul>
+                </div>
+            </section>
+
+            <!-- Balances Section -->
+            <section id="balances-section" class="glass-container">
+                <h2 class="text-2xl font-bold mb-4">Balances</h2>
+                <ul id="balances-list" class="space-y-2">
+                    <!-- Balances will be dynamically added here -->
+                </ul>
+            </section>
+
+            <!-- Clear All Button (for current split) -->
+            <section class="glass-container flex justify-center">
+                <button id="clear-all-current-split-button" class="glass-button bg-red-500 border-red-600 hover:bg-red-600">
+                    <i class="fas fa-eraser mr-2"></i>Clear Current Split Data
+                </button>
+            </section>
+        </div>
+
+        <!-- Settings Page -->
+        <div id="settings-section" class="hidden">
+            <section class="glass-container">
+                <h2 class="text-2xl font-bold mb-4">Settings</h2>
+                <div class="mb-4">
+                    <label for="currency-select" class="block text-sm font-medium mb-1">Currency</label>
+                    <select id="currency-select" class="glass-select" aria-label="Currency Select">
+                        <option value="$" selected>USD ($)</option>
+                        <option value="€">EUR (€)</option>
+                        <option value="£">GBP (£)</option>
+                        <option value="₹">INR (₹)</option>
+                        <option value="¥">JPY (¥)</option>
+                        <option value="CA$">CAD (CA$)</option>
+                        <option value="AU$">AUD (AU$)</option>
+                        <option value="CHF">CHF (CHF)</option>
+                        <option value="S$">SGD (S$)</option>
+                        <option value="HK$">HKD (HK$)</option>
+                    </select>
+                </div>
+                <div class="flex justify-end gap-3 mt-6">
+                    <button id="save-settings-button" class="glass-button">
+                        <i class="fas fa-save mr-2"></i>Save Changes
+                    </button>
+                    <button id="back-from-settings-button" class="glass-button">
+                        <i class="fas fa-arrow-left mr-2"></i>Back
+                    </button>
+                </div>
+            </section>
+        </div>
+
+    </div>
+
+    <!-- Custom Confirmation Modal -->
+    <div id="confirmation-modal" class="modal">
+        <div class="modal-content">
+            <p id="modal-message" class="text-xl mb-6">Are you sure?</p>
+            <div class="flex justify-center gap-4">
+                <button id="modal-confirm-button" class="glass-button px-6 py-2 bg-red-500 hover:bg-red-600">Yes</button>
+                <button id="modal-cancel-button" class="glass-button px-6 py-2">No</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK Imports -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, getDocs, onSnapshot, doc, deleteDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Firebase configuration (global variables provided by the environment)
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        let userId = null;
+        let participants = [];
+        let expenses = [];
+        let splits = []; // New array to store split groups
+        let currentCurrencySymbol = '$'; // Default currency symbol
+        let currentSplitId = null;
+        let currentSplitName = 'SplitEase'; // Default app title
+
+        // DOM Elements
+        const appTitle = document.getElementById('app-title');
+        const appSubtitle = document.getElementById('app-subtitle');
+        const mainAppSections = document.getElementById('main-app-sections');
+        const splitsPage = document.getElementById('splits-page');
+        const settingsSection = document.getElementById('settings-section');
+        const settingsButton = document.getElementById('settings-button');
+        const backToSplitsButton = document.getElementById('back-to-splits-button');
+        const saveSettingsButton = document.getElementById('save-settings-button');
+        const backFromSettingsButton = document.getElementById('back-from-settings-button');
+        const currencySelect = document.getElementById('currency-select');
+
+        const newSplitNameInput = document.getElementById('new-split-name-input');
+        const addSplitButton = document.getElementById('add-split-button');
+        const splitsList = document.getElementById('splits-list');
+
+        const participantNameInput = document.getElementById('participant-name-input');
+        const addParticipantButton = document.getElementById('add-participant-button');
+        const participantsList = document.getElementById('participants-list');
+        const paidBySelect = document.getElementById('paid-by-select');
+        const splitAmongCheckboxes = document.getElementById('split-among-checkboxes');
+        const splitAmongUnequalDiv = document.getElementById('split-among-unequal');
+        const unequalSharesInputs = document.getElementById('unequal-shares-inputs');
+        const expenseDescriptionInput = document.getElementById('expense-description-input');
+        const expenseAmountInput = document.getElementById('expense-amount-input');
+        const addExpenseButton = document.getElementById('add-expense-button');
+        const expensesList = document.getElementById('expenses-list');
+        const balancesList = document.getElementById('balances-list');
+        const clearAllCurrentSplitButton = document.getElementById('clear-all-current-split-button'); // Renamed
+        const confirmationModal = document.getElementById('confirmation-modal');
+        const modalMessage = document.getElementById('modal-message');
+        const modalConfirmButton = document.getElementById('modal-confirm-button');
+        const modalCancelButton = document.getElementById('modal-cancel-button');
+        const userIdDisplay = document.getElementById('user-id-display');
+
+        // Authentication and Data Loading
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                userId = user.uid;
+                userIdDisplay.textContent = `User ID: ${userId}`;
+                console.log("Firebase Authenticated. User ID:", userId);
+                await loadAppSettings(); // Load settings first
+                loadSplits(); // Then load splits based on settings
+            } else {
+                console.log("No user signed in. Attempting anonymous sign-in or custom token sign-in.");
+                try {
+                    if (initialAuthToken) {
+                        await signInWithCustomToken(auth, initialAuthToken);
+                    } else {
+                        await signInAnonymously(auth);
+                    }
+                } catch (error) {
+                    console.error("Firebase Auth Error:", error);
+                    userIdDisplay.textContent = "Authentication failed.";
+                }
+            }
+        });
+
+        // Helper to show custom confirmation modal
+        function showConfirmationModal(message, onConfirm, onCancel = () => {}) {
+            modalMessage.textContent = message;
+            confirmationModal.classList.add('open');
+
+            const confirmHandler = () => {
+                onConfirm();
+                confirmationModal.classList.remove('open');
+                modalConfirmButton.removeEventListener('click', confirmHandler);
+                modalCancelButton.removeEventListener('click', cancelHandler);
+            };
+
+            const cancelHandler = () => {
+                onCancel();
+                confirmationModal.classList.remove('open');
+                modalConfirmButton.removeEventListener('click', confirmHandler);
+                modalCancelButton.removeEventListener('click', cancelHandler);
+            };
+
+            modalConfirmButton.addEventListener('click', confirmHandler);
+            modalCancelButton.addEventListener('click', cancelHandler);
+        }
+
+        // Firestore paths for public data
+        const getSplitsCollectionRef = () => collection(db, `artifacts/${appId}/public/data/splits`);
+        const getParticipantsCollectionRef = (splitId) => collection(db, `artifacts/${appId}/public/data/splits/${splitId}/participants`);
+        const getExpensesCollectionRef = (splitId) => collection(db, `artifacts/${appId}/public/data/splits/${splitId}/expenses`);
+        const getAppSettingsDocRef = () => doc(db, `artifacts/${appId}/public/data/appSettings`, 'currentSettings');
+
+        /**
+         * Loads app settings (like currency and current active split) from Firestore.
+         */
+        async function loadAppSettings() {
+            onSnapshot(getAppSettingsDocRef(), (docSnapshot) => {
+                if (docSnapshot.exists()) {
+                    const settings = docSnapshot.data();
+                    currentCurrencySymbol = settings.currency || '$';
+                    currencySelect.value = currentCurrencySymbol; // Update settings page select
+                    currentSplitId = settings.currentSplitId || null;
+                    currentSplitName = settings.currentSplitName || 'SplitEase';
+                    console.log("App settings loaded:", settings);
+                } else {
+                    console.log("No app settings found. Using defaults.");
+                    // Set a default empty settings document if it doesn't exist
+                    setDoc(getAppSettingsDocRef(), { currency: '$', currentSplitId: null, currentSplitName: 'SplitEase' }, { merge: true })
+                        .catch(e => console.error("Error setting default app settings:", e));
+                }
+                // No updateAppHeader here, it's handled by switchView
+                renderExpenses(); // Re-render in case currency changed
+                calculateBalances(); // Recalculate in case currency changed
+            }, (error) => {
+                console.error("Error fetching app settings:", error);
+            });
+        }
+
+        /**
+         * Loads split groups from Firestore and sets up real-time listener.
+         */
+        async function loadSplits() {
+            onSnapshot(getSplitsCollectionRef(), (snapshot) => {
+                const fetchedSplits = [];
+                snapshot.forEach(doc => {
+                    fetchedSplits.push({ id: doc.id, ...doc.data() });
+                });
+                splits = fetchedSplits.sort((a,b) => (a.createdAt || 0) - (b.createdAt || 0)); // Sort by creation time
+                renderSplits();
+
+                // If a currentSplitId is set and still exists, load its data and switch to main app
+                if (currentSplitId && splits.some(s => s.id === currentSplitId)) {
+                    loadSplitData(currentSplitId);
+                    switchView('main-app');
+                } else {
+                    // If no current split is set or the old one was deleted, go to splits list
+                    currentSplitId = null; // Ensure it's null
+                    currentSplitName = 'SplitEase';
+                    switchView('splits');
+                }
+            }, (error) => {
+                console.error("Error fetching splits:", error);
+                splitsList.innerHTML = '<li class="text-red-400">Error loading splits.</li>';
+            });
+        }
+
+        /**
+         * Loads participants and expenses for the given split ID.
+         * @param {string} splitId - The ID of the split to load data for.
+         */
+        async function loadSplitData(splitId) {
+            if (!splitId) {
+                participants = [];
+                expenses = [];
+                renderParticipants();
+                renderExpenses();
+                calculateBalances();
+                return;
+            }
+
+            // Setup listener for participants within the selected split
+            onSnapshot(getParticipantsCollectionRef(splitId), (snapshot) => {
+                const fetchedParticipants = [];
+                snapshot.forEach(doc => {
+                    fetchedParticipants.push({ id: doc.id, name: doc.data().name });
+                });
+                participants = fetchedParticipants;
+                renderParticipants();
+                renderExpenseForms();
+                calculateBalances();
+            }, (error) => {
+                console.error("Error fetching participants for split:", splitId, error);
+            });
+
+            // Setup listener for expenses within the selected split
+            onSnapshot(getExpensesCollectionRef(splitId), (snapshot) => {
+                const fetchedExpenses = [];
+                snapshot.forEach(doc => {
+                    fetchedExpenses.push({ id: doc.id, ...doc.data() });
+                });
+                expenses = fetchedExpenses;
+                renderExpenses();
+                calculateBalances();
+            }, (error) => {
+                console.error("Error fetching expenses for split:", splitId, error);
+            });
+        }
+
+        /**
+         * Saves current app settings to Firestore.
+         */
+        async function saveSettings() {
+            const newCurrency = currencySelect.value;
+            try {
+                await setDoc(getAppSettingsDocRef(), { currency: newCurrency }, { merge: true });
+                currentCurrencySymbol = newCurrency; // Update local variable immediately
+                showConfirmationModal("Settings saved successfully!", () => {});
+                console.log("App settings saved to Firestore.");
+            } catch (e) {
+                console.error("Error saving settings: ", e);
+                showConfirmationModal("Failed to save settings. Please try again.", () => {});
+            }
+        }
+
+        /**
+         * Switches view between splits page, main app, and settings.
+         * Also updates header text based on the view.
+         * @param {string} view - 'splits', 'main-app', or 'settings'.
+         */
+        function switchView(view) {
+            splitsPage.classList.add('hidden');
+            mainAppSections.classList.add('hidden');
+            settingsSection.classList.add('hidden');
+            backToSplitsButton.classList.add('hidden'); // Hide back button by default
+
+            if (view === 'splits') {
+                splitsPage.classList.remove('hidden');
+                currentSplitId = null; // No split selected when on splits page
+                currentSplitName = 'SplitEase'; // Reset header
+                appTitle.textContent = 'SplitEase';
+                appSubtitle.textContent = 'Your Splits';
+            } else if (view === 'main-app') {
+                if (!currentSplitId) {
+                    switchView('splits'); // Fallback: Prevent direct access without selected split
+                    return;
+                }
+                mainAppSections.classList.remove('hidden');
+                backToSplitsButton.classList.remove('hidden'); // Show back button for main app
+                appTitle.textContent = currentSplitName; // Show active split name
+                appSubtitle.textContent = 'Manage Expenses';
+            } else if (view === 'settings') {
+                settingsSection.classList.remove('hidden');
+                currencySelect.value = currentCurrencySymbol; // Set dropdown to current currency
+                appTitle.textContent = 'Settings';
+                appSubtitle.textContent = 'Configure App';
+                // Set the back button for settings dynamically
+                if (currentSplitId) {
+                    backFromSettingsButton.onclick = () => switchView('main-app');
+                } else {
+                    backFromSettingsButton.onclick = () => switchView('splits');
+                }
+            }
+        }
+
+        /**
+         * Adds a new split group.
+         */
+        async function addSplit() {
+            const name = newSplitNameInput.value.trim();
+            if (name === '') {
+                showConfirmationModal("Split name cannot be empty.", () => {});
+                return;
+            }
+            if (splits.some(s => s.name.toLowerCase() === name.toLowerCase())) {
+                showConfirmationModal("A split with this name already exists.", () => {});
+                return;
+            }
+
+            try {
+                const newSplit = {
+                    name: name,
+                    userId: userId,
+                    createdAt: Date.now()
+                };
+                await addDoc(getSplitsCollectionRef(), newSplit);
+                newSplitNameInput.value = '';
+                console.log("Split added to Firestore.");
+            } catch (e) {
+                console.error("Error adding split: ", e);
+            }
+        }
+
+        /**
+         * Renders the list of splits in the UI.
+         */
+        function renderSplits() {
+            splitsList.innerHTML = '';
+            if (splits.length === 0) {
+                splitsList.innerHTML = `
+                    <li class="text-white text-opacity-70 text-center py-4">
+                        No splits yet. Enter a name above and click 'Create Split' to get started!
+                    </li>
+                `;
+                return;
+            }
+            splits.forEach(s => {
+                const li = document.createElement('li');
+                li.className = 'glass-list-item flex-col sm:flex-row sm:items-center';
+                li.innerHTML = `
+                    <span class="text-lg font-semibold mb-2 sm:mb-0 sm:mr-4 flex-grow">${s.name}</span>
+                    <div class="flex gap-2 w-full sm:w-auto">
+                        <button data-id="${s.id}" data-name="${s.name}" class="select-split-button glass-button flex-grow sm:flex-shrink-0 px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700">
+                            <i class="fas fa-folder-open mr-1"></i>Select
+                        </button>
+                        <button data-id="${s.id}" class="delete-split-button glass-button flex-grow sm:flex-shrink-0 px-4 py-2 text-sm bg-red-500 hover:bg-red-600">
+                            <i class="fas fa-trash-alt mr-1"></i>Delete
+                        </button>
+                    </div>
+                `;
+                splitsList.appendChild(li);
+            });
+        }
+
+        /**
+         * Selects a split, making it the active split for expense management.
+         * @param {string} id - The ID of the split to select.
+         * @param {string} name - The name of the split to select.
+         */
+        async function selectSplit(id, name) {
+            currentSplitId = id;
+            currentSplitName = name;
+            // Persist the selected split
+            await setDoc(getAppSettingsDocRef(), { currentSplitId: id, currentSplitName: name }, { merge: true });
+            loadSplitData(id); // Load participants and expenses for the selected split
+            switchView('main-app');
+        }
+
+        /**
+         * Deletes an entire split and all its subcollections (participants, expenses).
+         * This operation is irreversible and includes strong confirmation.
+         * @param {string} splitId - The ID of the split to delete.
+         */
+        async function deleteSplit(splitId) {
+            const splitToDelete = splits.find(s => s.id === splitId);
+            if (!splitToDelete) return;
+
+            showConfirmationModal(
+                `Are you sure you want to delete the split '${splitToDelete.name}'? This will PERMANENTLY delete ALL participants and expenses within this split. This action cannot be undone.`,
+                async () => {
+                    try {
+                        // Delete all participants in the split
+                        const participantsSnapshot = await getDocs(getParticipantsCollectionRef(splitId));
+                        for (const docSnapshot of participantsSnapshot.docs) {
+                            await deleteDoc(doc(db, `artifacts/${appId}/public/data/splits/${splitId}/participants`, docSnapshot.id));
+                        }
+
+                        // Delete all expenses in the split
+                        const expensesSnapshot = await getDocs(getExpensesCollectionRef(splitId));
+                        for (const docSnapshot of expensesSnapshot.docs) {
+                            await deleteDoc(doc(db, `artifacts/${appId}/public/data/splits/${splitId}/expenses`, docSnapshot.id));
+                        }
+
+                        // Finally, delete the split document itself
+                        await deleteDoc(doc(db, `artifacts/${appId}/public/data/splits`, splitId));
+                        console.log(`Split '${splitToDelete.name}' and its data deleted from Firestore.`);
+
+                        // If the deleted split was the currently active one, clear currentSplitId
+                        if (currentSplitId === splitId) {
+                            currentSplitId = null;
+                            currentSplitName = 'SplitEase';
+                            await setDoc(getAppSettingsDocRef(), { currentSplitId: null, currentSplitName: 'SplitEase' }, { merge: true });
+                            // This will trigger loadSplits and switchView('splits') via onSnapshot
+                        }
+                    } catch (e) {
+                        console.error("Error deleting split and its subcollections: ", e);
+                        showConfirmationModal("Failed to delete split. Please try again.", () => {});
+                    }
+                }
+            );
+        }
+
+        /**
+         * Adds a new participant to the current split.
+         */
+        async function addParticipant() {
+            if (!currentSplitId) {
+                showConfirmationModal("Please select or create a split first.", () => {});
+                return;
+            }
+            const name = participantNameInput.value.trim();
+            if (name === '') {
+                showConfirmationModal("Participant name cannot be empty.", () => {});
+                return;
+            }
+            if (participants.some(p => p.name.toLowerCase() === name.toLowerCase())) {
+                showConfirmationModal("Participant already exists in this split.", () => {});
+                return;
+            }
+
+            try {
+                await addDoc(getParticipantsCollectionRef(currentSplitId), { name: name, userId: userId });
+                participantNameInput.value = '';
+                console.log("Participant added to Firestore.");
+            } catch (e) {
+                console.error("Error adding participant: ", e);
+            }
+        }
+
+        /**
+         * Renders the list of participants in the UI.
+         */
+        function renderParticipants() {
+            participantsList.innerHTML = '';
+            if (participants.length === 0) {
+                participantsList.innerHTML = `
+                    <li class="text-white text-opacity-70 text-center py-4">
+                        No participants in this split yet. Add some above!
+                    </li>
+                `;
+                return;
+            }
+            participants.forEach(p => {
+                const li = document.createElement('li');
+                li.className = 'glass-list-item';
+                li.innerHTML = `
+                    <span class="text-lg">${p.name}</span>
+                    <button data-id="${p.id}" class="delete-participant-button text-red-300 hover:text-red-500 transition-colors">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+                participantsList.appendChild(li);
+            });
+            renderExpenseForms(); // Update dropdowns and checkboxes
+        }
+
+        /**
+         * Deletes a participant from the current split.
+         * Confirms with the user and handles associated expenses.
+         * @param {string} id - The ID of the participant to delete.
+         */
+        async function deleteParticipant(id) {
+            if (!currentSplitId) return; // Should not happen if UI is managed correctly
+
+            const participantToDelete = participants.find(p => p.id === id);
+            if (!participantToDelete) return;
+
+            // Check if this participant has paid for any expenses
+            const paidForExpenses = expenses.filter(exp => exp.paidBy === participantToDelete.name);
+
+            if (paidForExpenses.length > 0) {
+                showConfirmationModal(
+                    `'${participantToDelete.name}' has paid for ${paidForExpenses.length} expense(s) in this split. Please delete these expenses first before deleting the participant.`,
+                    () => { /* No action on confirm, just close modal */ }
+                );
+                return;
+            }
+
+            // If participant has not paid for any expenses, but is involved in splits
+            const involvedInSplits = expenses.filter(exp => exp.splitAmong.includes(participantToDelete.name));
+
+            let message = `Are you sure you want to delete '${participantToDelete.name}' from this split?`;
+            if (involvedInSplits.length > 0) {
+                message = `Participant '${participantToDelete.name}' is involved in ${involvedInSplits.length} expense(s) in this split. Deleting will remove them from these splits. Are you sure?`;
+            }
+
+            showConfirmationModal(message, async () => {
+                try {
+                    // Update expenses where this participant is in splitAmong
+                    for (const expense of involvedInSplits) {
+                        let updatedSplitAmong = expense.splitAmong.filter(name => name !== participantToDelete.name);
+                        let updatedUnequalShares = expense.unequalShares ? { ...expense.unequalShares } : null;
+
+                        if (updatedUnequalShares && updatedUnequalShares[participantToDelete.name]) {
+                            delete updatedUnequalShares[participantToDelete.name];
+                        }
+
+                        // If after removing the participant, the splitAmong list becomes empty,
+                        // delete the expense as it no longer makes sense.
+                        if (updatedSplitAmong.length === 0) {
+                             await deleteDoc(doc(db, `artifacts/${appId}/public/data/splits/${currentSplitId}/expenses`, expense.id));
+                             console.log(`Expense ${expense.description} deleted as no participants left after deleting ${participantToDelete.name}.`);
+                        } else {
+                            await setDoc(doc(db, `artifacts/${appId}/public/data/splits/${currentSplitId}/expenses`, expense.id), {
+                                ...expense,
+                                splitAmong: updatedSplitAmong,
+                                unequalShares: updatedUnequalShares
+                            });
+                        }
+                    }
+
+                    // Finally, delete the participant
+                    await deleteDoc(doc(db, `artifacts/${appId}/public/data/splits/${currentSplitId}/participants`, id));
+                    console.log("Participant deleted from Firestore.");
+                } catch (e) {
+                    console.error("Error deleting participant or updating expenses: ", e);
+                }
+            });
+        }
+
+        /**
+         * Populates the 'Paid By' select dropdown and 'Split Among' checkboxes.
+         */
+        function renderExpenseForms() {
+            // Clear existing options/checkboxes
+            paidBySelect.innerHTML = '<option value="" disabled selected>Select who paid</option>';
+            splitAmongCheckboxes.innerHTML = '';
+            unequalSharesInputs.innerHTML = '';
+
+            if (participants.length === 0) {
+                const noParticipantsMsg = document.createElement('span');
+                noParticipantsMsg.className = 'text-white text-opacity-70 text-center py-4 block w-full';
+                noParticipantsMsg.textContent = 'Add participants in the section above to enable expense tracking.';
+                splitAmongCheckboxes.appendChild(noParticipantsMsg);
+                return;
+            }
+
+            // Populate Paid By dropdown
+            participants.forEach(p => {
+                const option = document.createElement('option');
+                option.value = p.name;
+                option.textContent = p.name;
+                option.className = 'bg-gray-800 text-white'; // Style options
+                paidBySelect.appendChild(option);
+            });
+
+            // Populate Split Among checkboxes (for equal split)
+            participants.forEach(p => {
+                const label = document.createElement('label');
+                label.className = 'inline-flex items-center glass-list-item p-2 cursor-pointer';
+                label.innerHTML = `
+                    <input type="checkbox" name="split-among-participant" value="${p.name}" class="form-checkbox text-white focus:ring-transparent focus:ring-offset-transparent">
+                    <span class="ml-2 text-white">${p.name}</span>
+                `;
+                splitAmongCheckboxes.appendChild(label);
+            });
+
+            // Populate Unequal Shares inputs initially (hidden)
+            participants.forEach(p => {
+                const div = document.createElement('div');
+                div.className = 'unequal-split-input-group';
+                div.innerHTML = `
+                    <label class="w-24 flex-shrink-0">${p.name}</label>
+                    <input type="number" data-participant="${p.name}" class="glass-input unequal-share-input" placeholder="Amount" min="0" step="0.01">
+                `;
+                unequalSharesInputs.appendChild(div);
+            });
+        }
+
+        // Event listener for split type change
+        document.querySelectorAll('input[name="split-type"]').forEach(radio => {
+            radio.addEventListener('change', (event) => {
+                if (event.target.value === 'equal') {
+                    document.getElementById('split-among-equal').classList.remove('hidden');
+                    splitAmongUnequalDiv.classList.add('hidden');
+                } else {
+                    document.getElementById('split-among-equal').classList.add('hidden');
+                    splitAmongUnequalDiv.classList.remove('hidden');
+                }
+            });
+        });
+
+        /**
+         * Adds a new expense to the current split.
+         */
+        async function addExpense() {
+            if (!currentSplitId) {
+                showConfirmationModal("Please select or create a split first.", () => {});
+                return;
+            }
+
+            const description = expenseDescriptionInput.value.trim();
+            const amount = parseFloat(expenseAmountInput.value);
+            const paidBy = paidBySelect.value;
+            const splitType = document.querySelector('input[name="split-type"]:checked').value;
+
+            if (!description || isNaN(amount) || amount <= 0 || !paidBy) {
+                showConfirmationModal("Please fill in all expense details correctly.", () => {});
+                return;
+            }
+
+            let splitAmong = [];
+            let unequalShares = {};
+
+            if (splitType === 'equal') {
+                document.querySelectorAll('input[name="split-among-participant"]:checked').forEach(checkbox => {
+                    splitAmong.push(checkbox.value);
+                });
+                if (splitAmong.length === 0) {
+                    showConfirmationModal("Please select at least one participant to split the expense with.", () => {});
+                    return;
+                }
+            } else { // unequal split
+                let totalUnequalAmount = 0;
+                document.querySelectorAll('.unequal-share-input').forEach(input => {
+                    const participantName = input.dataset.participant;
+                    const share = parseFloat(input.value);
+                    if (!isNaN(share) && share > 0) {
+                        unequalShares[participantName] = share;
+                        splitAmong.push(participantName); // Add participant to splitAmong if they have a share
+                        totalUnequalAmount += share;
+                    }
+                });
+
+                if (Object.keys(unequalShares).length === 0) {
+                    showConfirmationModal("Please enter at least one unequal share.", () => {});
+                    return;
+                }
+                if (Math.abs(totalUnequalAmount - amount) > 0.01) { // Allow for floating point inaccuracies
+                    showConfirmationModal(`Unequal shares sum (${totalUnequalAmount.toFixed(2)}) does not match total amount (${amount.toFixed(2)}). Please adjust.`, () => {});
+                    return;
+                }
+            }
+
+            const newExpense = {
+                description,
+                amount,
+                paidBy,
+                splitAmong,
+                splitType,
+                unequalShares: splitType === 'unequal' ? unequalShares : null,
+                timestamp: Date.now(),
+                userId: userId // Store the userId of the creator
+            };
+
+            try {
+                await addDoc(getExpensesCollectionRef(currentSplitId), newExpense);
+                // Clear form fields
+                expenseDescriptionInput.value = '';
+                expenseAmountInput.value = '';
+                paidBySelect.value = '';
+                document.querySelectorAll('input[name="split-among-participant"]:checked').forEach(checkbox => checkbox.checked = false);
+                document.querySelectorAll('.unequal-share-input').forEach(input => input.value = '');
+                document.querySelector('input[name="split-type"][value="equal"]').checked = true; // Reset to equal
+                document.getElementById('split-among-equal').classList.remove('hidden');
+                splitAmongUnequalDiv.classList.add('hidden');
+
+                console.log("Expense added to Firestore.");
+            } catch (e) {
+                console.error("Error adding expense: ", e);
+            }
+        }
+
+        /**
+         * Renders the list of expenses in the UI.
+         */
+        function renderExpenses() {
+            expensesList.innerHTML = '';
+            if (expenses.length === 0) {
+                expensesList.innerHTML = '<li class="text-white text-opacity-70">No expenses yet.</li>';
+                return;
+            }
+            expenses.sort((a, b) => b.timestamp - a.timestamp); // Sort by most recent
+            expenses.forEach(exp => {
+                const li = document.createElement('li');
+                li.className = 'glass-list-item flex-col items-start'; // Use flex-col for better layout on small screens
+                let splitDetails = '';
+                if (exp.splitType === 'equal') {
+                    const share = exp.amount / exp.splitAmong.length;
+                    splitDetails = `(${exp.splitAmong.join(', ')} - ${currentCurrencySymbol}${share.toFixed(2)} each)`;
+                } else {
+                    splitDetails = '(' + Object.entries(exp.unequalShares).map(([p, s]) => `${p}: ${currentCurrencySymbol}${s.toFixed(2)}`).join(', ') + ')';
+                }
+
+                li.innerHTML = `
+                    <div class="w-full flex justify-between items-center mb-1">
+                        <span class="text-lg font-semibold">${exp.description}</span>
+                        <span class="text-xl font-bold">${currentCurrencySymbol}${exp.amount.toFixed(2)}</span>
+                    </div>
+                    <div class="w-full text-sm text-white text-opacity-80">
+                        Paid by: <span class="font-medium">${exp.paidBy}</span>
+                    </div>
+                    <div class="w-full text-sm text-white text-opacity-80">
+                        Split: ${splitDetails}
+                    </div>
+                    <button data-id="${exp.id}" class="delete-expense-button mt-2 text-red-300 hover:text-red-500 transition-colors self-end">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                `;
+                expensesList.appendChild(li);
+            });
+        }
+
+        /**
+         * Deletes an expense from the current split.
+         * @param {string} id - The ID of the expense to delete.
+         */
+        async function deleteExpense(id) {
+            if (!currentSplitId) return; // Should not happen if UI is managed correctly
+
+            showConfirmationModal("Are you sure you want to delete this expense?", async () => {
+                try {
+                    await deleteDoc(doc(db, `artifacts/${appId}/public/data/splits/${currentSplitId}/expenses`, id));
+                    console.log("Expense deleted from Firestore.");
+                } catch (e) {
+                    console.error("Error deleting expense: ", e);
+                }
+            });
+        }
+
+        /**
+         * Calculates and displays who owes whom for the current split.
+         */
+        function calculateBalances() {
+            const balances = {}; // participantName -> net amount (positive = owes, negative = is owed)
+
+            // Initialize balances for all participants
+            participants.forEach(p => {
+                balances[p.name] = 0;
+            });
+
+            expenses.forEach(exp => {
+                // Adjust for who paid
+                if (balances[exp.paidBy] !== undefined) {
+                    balances[exp.paidBy] += exp.amount;
+                }
+
+                // Adjust for who owes (split logic)
+                if (exp.splitType === 'equal') {
+                    if (exp.splitAmong.length > 0) {
+                        const share = exp.amount / exp.splitAmong.length;
+                        exp.splitAmong.forEach(pName => {
+                            if (balances[pName] !== undefined) {
+                                balances[pName] -= share;
+                            }
+                        });
+                    }
+                } else { // unequal split
+                    if (exp.unequalShares) {
+                        for (const pName in exp.unequalShares) {
+                            if (balances[pName] !== undefined) {
+                                balances[pName] -= exp.unequalShares[pName];
+                            }
+                        }
+                    }
+                }
+            });
+
+            renderBalances(balances);
+        }
+
+        /**
+         * Renders the calculated balances in the UI.
+         * @param {object} balances - An object containing participant balances.
+         */
+        function renderBalances(balances) {
+            balancesList.innerHTML = '';
+            const settlementList = [];
+
+            // Convert balances object to an array of { name, amount }
+            const sortedBalances = Object.entries(balances)
+                .map(([name, amount]) => ({ name, amount }))
+                .sort((a, b) => a.amount - b.amount); // Sort from who is owed most to who owes most
+
+            let i = 0;
+            let j = sortedBalances.length - 1;
+
+            while (i < j) {
+                let debtor = sortedBalances[j]; // This person has a positive balance, meaning they are owed money
+                let creditor = sortedBalances[i]; // This person has a negative balance, meaning they owe money
+
+                // Check for significant amounts to avoid tiny settlements due to floating point inaccuracies
+                if (debtor.amount <= 0.01 || creditor.amount >= -0.01) break;
+
+                const settlementAmount = Math.min(Math.abs(debtor.amount), Math.abs(creditor.amount));
+
+                if (settlementAmount > 0.01) { // Only settle if amount is significant
+                    // The person with the negative balance (creditor) pays the person with the positive balance (debtor)
+                    settlementList.push({
+                        from: creditor.name, // The person who owes (has negative balance)
+                        to: debtor.name,     // The person who is owed (has positive balance)
+                        amount: settlementAmount
+                    });
+
+                    debtor.amount -= settlementAmount;
+                    creditor.amount += settlementAmount;
+                }
+
+                // Move pointers if balance is settled (within a small epsilon)
+                if (Math.abs(debtor.amount) < 0.01) {
+                    j--;
+                }
+                if (Math.abs(creditor.amount) < 0.01) {
+                    i++;
+                }
+            }
+
+            if (settlementList.length === 0 && Object.keys(balances).length > 0) {
+                balancesList.innerHTML = '<li class="text-white text-opacity-70">All clear! No pending payments.</li>';
+                return;
+            } else if (Object.keys(balances).length === 0) {
+                balancesList.innerHTML = '<li class="text-white text-opacity-70">Add participants and expenses to see balances.</li>';
+                return;
+            }
+
+
+            settlementList.forEach(s => {
+                const li = document.createElement('li');
+                li.className = 'glass-list-item flex-col items-start';
+                li.innerHTML = `
+                    <span class="text-lg font-semibold">${s.from} <i class="fas fa-arrow-right mx-2"></i> ${s.to}</span>
+                    <span class="text-xl font-bold mt-1">${currentCurrencySymbol}${s.amount.toFixed(2)}</span>
+                `;
+                balancesList.appendChild(li);
+            });
+        }
+
+        /**
+         * Clears all participants and expenses from the CURRENT split.
+         */
+        async function clearAllCurrentSplitData() {
+            if (!currentSplitId) {
+                showConfirmationModal("No split is selected to clear data.", () => {});
+                return;
+            }
+
+            const currentSplit = splits.find(s => s.id === currentSplitId);
+            const splitName = currentSplit ? currentSplit.name : "this split";
+
+            showConfirmationModal(`Are you sure you want to clear ALL participants and expenses from '${splitName}'? This action cannot be undone.`, async () => {
+                try {
+                    const participantsSnapshot = await getDocs(getParticipantsCollectionRef(currentSplitId));
+                    for (const docSnapshot of participantsSnapshot.docs) {
+                        await deleteDoc(doc(db, `artifacts/${appId}/public/data/splits/${currentSplitId}/participants`, docSnapshot.id));
+                    }
+
+                    const expensesSnapshot = await getDocs(getExpensesCollectionRef(currentSplitId));
+                    for (const docSnapshot of expensesSnapshot.docs) {
+                        await deleteDoc(doc(db, `artifacts/${appId}/public/data/splits/${currentSplitId}/expenses`, docSnapshot.id));
+                    }
+                    console.log(`All data cleared for split '${splitName}' from Firestore.`);
+                } catch (e) {
+                    console.error("Error clearing all data for current split: ", e);
+                    showConfirmationModal("Failed to clear data for this split. Please try again.", () => {});
+                }
+            });
+        }
+
+        // --- Event Listeners ---
+        // Splits page
+        addSplitButton.addEventListener('click', addSplit);
+        splitsList.addEventListener('click', (event) => {
+            if (event.target.closest('.select-split-button')) {
+                const id = event.target.closest('.select-split-button').dataset.id;
+                const name = event.target.closest('.select-split-button').dataset.name;
+                selectSplit(id, name);
+            } else if (event.target.closest('.delete-split-button')) {
+                const id = event.target.closest('.delete-split-button').dataset.id;
+                deleteSplit(id);
+            }
+        });
+
+        // Main App Sections
+        addParticipantButton.addEventListener('click', addParticipant);
+        participantsList.addEventListener('click', (event) => {
+            if (event.target.closest('.delete-participant-button')) {
+                const id = event.target.closest('.delete-participant-button').dataset.id;
+                deleteParticipant(id);
+            }
+        });
+        addExpenseButton.addEventListener('click', addExpense);
+        expensesList.addEventListener('click', (event) => {
+            if (event.target.closest('.delete-expense-button')) {
+                const id = event.target.closest('.delete-expense-button').dataset.id;
+                deleteExpense(id);
+            }
+        });
+        clearAllCurrentSplitButton.addEventListener('click', clearAllCurrentSplitData);
+
+        // Header/Navigation Buttons
+        settingsButton.addEventListener('click', () => switchView('settings'));
+        backToSplitsButton.addEventListener('click', () => switchView('splits'));
+        // backFromSettingsButton's behavior is set dynamically in switchView('settings')
+
+        // Settings Page
+        saveSettingsButton.addEventListener('click', saveSettings);
+
+        // Initial rendering of expense forms (before data load, useful for styling)
+        renderExpenseForms();
+    </script>
+</body>
+</html>
+
