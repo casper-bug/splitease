@@ -1,0 +1,1057 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="SplitEase - Simplify group expenses with smart bill splitting">
+    <meta name="theme-color" content="#1a2a3a">
+    <title>SplitEase - Smart Expense Splitter</title>
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- Icons -->
+    <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Google Fonts - Poppins -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a3a 0%, #1f3240 50%, #2a3a4a 100%);
+            min-height: 100vh;
+            color: #ecf0f1;
+        }
+
+        .glass-card {
+            backdrop-filter: blur(16px);
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .glass-input {
+            backdrop-filter: blur(8px);
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #ecf0f1;
+            border-radius: 8px;
+            padding: 10px 15px;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+
+        .glass-input:focus {
+            outline: none;
+            border-color: rgba(255, 255, 255, 0.4);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .glass-input::placeholder {
+            color: rgba(236, 240, 241, 0.5);
+        }
+
+        .glass-button {
+            backdrop-filter: blur(8px);
+            background: rgba(79, 70, 229, 0.8);
+            border: 1px solid rgba(79, 70, 229, 0.9);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .glass-button:hover {
+            background: rgba(79, 70, 229, 1);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
+        }
+
+        .glass-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-destructive {
+            background: rgba(239, 68, 68, 0.8);
+            border-color: rgba(239, 68, 68, 0.9);
+        }
+
+        .btn-destructive:hover {
+            background: rgba(239, 68, 68, 1);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+        }
+
+        .btn-ghost {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-ghost:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .list-item {
+            backdrop-filter: blur(8px);
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .list-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateX(4px);
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(79, 70, 229, 0.2);
+            border: 2px solid rgba(79, 70, 229, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: #818cf8;
+        }
+
+        .balance-positive {
+            background: rgba(34, 197, 94, 0.1);
+            border-color: rgba(34, 197, 94, 0.3);
+        }
+
+        .balance-negative {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            backdrop-filter: blur(20px);
+            background: rgba(44, 62, 80, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 32px;
+            max-width: 500px;
+            width: 90%;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+
+        .modal-overlay.active .modal-content {
+            transform: scale(1);
+        }
+
+        .skeleton {
+            background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.05) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        select.glass-input {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23ecf0f1' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            padding-right: 36px;
+            appearance: none;
+        }
+
+        select.glass-input option {
+            background: #2a3a4a;
+            color: #ecf0f1;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <div class="container mx-auto max-w-4xl">
+        <!-- Header -->
+        <header class="text-center mb-8 relative fade-in">
+            <h1 class="text-5xl md:text-6xl font-extrabold text-white mb-2 drop-shadow-2xl">
+                SplitEase
+            </h1>
+            <p class="text-xl text-white/80 font-medium">Simplify group expenses</p>
+            
+            <button id="settingsBtn" class="absolute top-0 right-0 glass-button btn-ghost w-12 h-12 rounded-full p-0">
+                <i class="fas fa-cog"></i>
+            </button>
+        </header>
+
+        <!-- Main Content Area -->
+        <div id="app-content">
+            <!-- Splits View -->
+            <div id="splitsView" class="space-y-6 fade-in">
+                <div class="glass-card p-6">
+                    <h2 class="text-2xl font-bold text-white mb-4">Create New Split</h2>
+                    <div class="flex flex-col sm:flex-row gap-3">
+                        <input type="text" id="newSplitName" class="glass-input flex-1" placeholder="Enter split name (e.g., Weekend Trip)">
+                        <button id="createSplitBtn" class="glass-button">
+                            <i class="fas fa-plus mr-2"></i>Create Split
+                        </button>
+                    </div>
+                </div>
+
+                <div class="glass-card p-6">
+                    <h2 class="text-2xl font-bold text-white mb-4">Your Splits</h2>
+                    <div id="splitsList"></div>
+                </div>
+            </div>
+
+            <!-- Split Detail View -->
+            <div id="splitDetailView" class="hidden space-y-6 fade-in">
+                <!-- Header -->
+                <div class="glass-card p-6">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-4">
+                            <button id="backBtn" class="glass-button btn-ghost w-12 h-12 rounded-full p-0">
+                                <i class="fas fa-arrow-left"></i>
+                            </button>
+                            <div>
+                                <h1 id="splitName" class="text-3xl font-bold text-white"></h1>
+                                <p id="splitDate" class="text-white/50 text-sm"></p>
+                            </div>
+                        </div>
+                        <button id="deleteSplitBtn" class="glass-button btn-destructive rounded-full w-12 h-12 p-0">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Participants -->
+                <div class="glass-card p-6">
+                    <h2 class="text-2xl font-bold text-white mb-4">Participants</h2>
+                    <div class="flex flex-col sm:flex-row gap-3 mb-6">
+                        <input type="text" id="newParticipantName" class="glass-input flex-1" placeholder="Enter participant name">
+                        <button id="addParticipantBtn" class="glass-button">
+                            <i class="fas fa-user-plus mr-2"></i>Add
+                        </button>
+                    </div>
+                    <div id="participantsList"></div>
+                </div>
+
+                <!-- Expenses -->
+                <div class="glass-card p-6">
+                    <h2 class="text-2xl font-bold text-white mb-4">Add Expense</h2>
+                    <div class="space-y-4 mb-6">
+                        <input type="text" id="expenseDescription" class="glass-input" placeholder="Description (e.g., Dinner, Hotel)">
+                        <input type="number" id="expenseAmount" class="glass-input" placeholder="Amount" step="0.01" min="0">
+                        <select id="paidBy" class="glass-input">
+                            <option value="">Select who paid</option>
+                        </select>
+                        
+                        <div>
+                            <label class="block text-white/80 mb-2">Split Type</label>
+                            <div class="flex gap-4">
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="radio" name="splitType" value="equal" checked class="w-4 h-4">
+                                    <span class="text-white">Equal</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="radio" name="splitType" value="unequal" class="w-4 h-4">
+                                    <span class="text-white">Unequal</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div id="equalSplitSection">
+                            <label class="block text-white/80 mb-2">Split Among</label>
+                            <div id="splitAmongCheckboxes" class="space-y-2"></div>
+                        </div>
+
+                        <div id="unequalSplitSection" class="hidden">
+                            <label class="block text-white/80 mb-2">Unequal Shares</label>
+                            <div id="unequalSharesInputs" class="space-y-2"></div>
+                        </div>
+                    </div>
+                    <button id="addExpenseBtn" class="glass-button w-full">
+                        <i class="fas fa-plus mr-2"></i>Add Expense
+                    </button>
+
+                    <div class="mt-8">
+                        <h3 class="text-xl font-semibold text-white mb-4">Recent Expenses</h3>
+                        <div id="expensesList"></div>
+                    </div>
+                </div>
+
+                <!-- Balances -->
+                <div class="glass-card p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-2xl font-bold text-white">Balances</h2>
+                        <button id="exportBtn" class="glass-button btn-ghost text-sm">
+                            <i class="fas fa-download mr-2"></i>Export
+                        </button>
+                    </div>
+                    <div id="balancesList"></div>
+                </div>
+            </div>
+
+            <!-- Settings View -->
+            <div id="settingsView" class="hidden space-y-6 fade-in">
+                <div class="glass-card p-6">
+                    <div class="flex items-center gap-4 mb-6">
+                        <button id="backFromSettingsBtn" class="glass-button btn-ghost w-12 h-12 rounded-full p-0">
+                            <i class="fas fa-arrow-left"></i>
+                        </button>
+                        <h1 class="text-3xl font-bold text-white">Settings</h1>
+                    </div>
+
+                    <div class="space-y-6">
+                        <div>
+                            <label for="currencySelect" class="block text-white/80 mb-2">Currency</label>
+                            <select id="currencySelect" class="glass-input">
+                                <option value="$">USD ($)</option>
+                                <option value="€">EUR (€)</option>
+                                <option value="£">GBP (£)</option>
+                                <option value="₹">INR (₹)</option>
+                                <option value="¥">JPY (¥)</option>
+                                <option value="CA$">CAD (CA$)</option>
+                                <option value="AU$">AUD (AU$)</option>
+                                <option value="CHF">CHF (CHF)</option>
+                                <option value="S$">SGD (S$)</option>
+                                <option value="HK$">HKD (HK$)</option>
+                            </select>
+                            <p class="text-white/50 text-sm mt-2">This will be used for all expense amounts and balances</p>
+                        </div>
+
+                        <div class="flex gap-3">
+                            <button id="saveSettingsBtn" class="glass-button flex-1">
+                                <i class="fas fa-save mr-2"></i>Save Changes
+                            </button>
+                            <button id="cancelSettingsBtn" class="glass-button btn-ghost">
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirmModal" class="modal-overlay">
+        <div class="modal-content">
+            <p id="confirmMessage" class="text-xl text-white mb-6 text-center"></p>
+            <div class="flex gap-3 justify-center">
+                <button id="confirmYes" class="glass-button btn-destructive px-8">Yes</button>
+                <button id="confirmNo" class="glass-button btn-ghost px-8">No</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data storage using localStorage
+        class Storage {
+            constructor() {
+                this.loadData();
+            }
+
+            loadData() {
+                this.splits = JSON.parse(localStorage.getItem('splits') || '[]');
+                this.participants = JSON.parse(localStorage.getItem('participants') || '[]');
+                this.expenses = JSON.parse(localStorage.getItem('expenses') || '[]');
+                this.settings = JSON.parse(localStorage.getItem('settings') || '{"currency":"$"}');
+            }
+
+            saveData() {
+                localStorage.setItem('splits', JSON.stringify(this.splits));
+                localStorage.setItem('participants', JSON.stringify(this.participants));
+                localStorage.setItem('expenses', JSON.stringify(this.expenses));
+                localStorage.setItem('settings', JSON.stringify(this.settings));
+            }
+
+            // Splits
+            getSplits() {
+                return this.splits.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+            }
+
+            createSplit(name) {
+                const split = {
+                    id: Date.now().toString(),
+                    name,
+                    createdAt: new Date().toISOString()
+                };
+                this.splits.push(split);
+                this.saveData();
+                return split;
+            }
+
+            deleteSplit(id) {
+                this.splits = this.splits.filter(s => s.id !== id);
+                this.participants = this.participants.filter(p => p.splitId !== id);
+                this.expenses = this.expenses.filter(e => e.splitId !== id);
+                this.saveData();
+            }
+
+            // Participants
+            getParticipants(splitId) {
+                return this.participants.filter(p => p.splitId === splitId);
+            }
+
+            createParticipant(splitId, name) {
+                const participant = {
+                    id: Date.now().toString() + Math.random(),
+                    splitId,
+                    name,
+                    createdAt: new Date().toISOString()
+                };
+                this.participants.push(participant);
+                this.saveData();
+                return participant;
+            }
+
+            deleteParticipant(id) {
+                this.participants = this.participants.filter(p => p.id !== id);
+                this.expenses = this.expenses.filter(e => 
+                    e.paidBy !== id && !e.splitAmong.includes(id)
+                );
+                this.saveData();
+            }
+
+            // Expenses
+            getExpenses(splitId) {
+                return this.expenses
+                    .filter(e => e.splitId === splitId)
+                    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+            }
+
+            createExpense(data) {
+                const expense = {
+                    id: Date.now().toString() + Math.random(),
+                    ...data,
+                    createdAt: new Date().toISOString()
+                };
+                this.expenses.push(expense);
+                this.saveData();
+                return expense;
+            }
+
+            deleteExpense(id) {
+                this.expenses = this.expenses.filter(e => e.id !== id);
+                this.saveData();
+            }
+
+            // Balances
+            calculateBalances(splitId) {
+                const participants = this.getParticipants(splitId);
+                const expenses = this.getExpenses(splitId);
+                const balanceMap = new Map();
+
+                participants.forEach(p => balanceMap.set(p.id, 0));
+
+                expenses.forEach(expense => {
+                    const current = balanceMap.get(expense.paidBy) || 0;
+                    balanceMap.set(expense.paidBy, current + expense.amount);
+
+                    if (expense.splitType === 'equal') {
+                        const share = expense.amount / expense.splitAmong.length;
+                        expense.splitAmong.forEach(id => {
+                            const bal = balanceMap.get(id) || 0;
+                            balanceMap.set(id, bal - share);
+                        });
+                    } else {
+                        const shares = JSON.parse(expense.shares || '{}');
+                        expense.splitAmong.forEach(id => {
+                            const share = shares[id] || 0;
+                            const bal = balanceMap.get(id) || 0;
+                            balanceMap.set(id, bal - share);
+                        });
+                    }
+                });
+
+                return participants.map(p => ({
+                    participantId: p.id,
+                    participantName: p.name,
+                    netBalance: balanceMap.get(p.id) || 0
+                }));
+            }
+
+            calculateSettlements(splitId) {
+                const balances = this.calculateBalances(splitId);
+                const creditors = balances
+                    .filter(b => b.netBalance > 0.01)
+                    .map(b => ({ ...b }))
+                    .sort((a, b) => b.netBalance - a.netBalance);
+                
+                const debtors = balances
+                    .filter(b => b.netBalance < -0.01)
+                    .map(b => ({ ...b, netBalance: Math.abs(b.netBalance) }))
+                    .sort((a, b) => b.netBalance - a.netBalance);
+
+                const settlements = [];
+                let i = 0, j = 0;
+
+                while (i < creditors.length && j < debtors.length) {
+                    const creditor = creditors[i];
+                    const debtor = debtors[j];
+                    const amount = Math.min(creditor.netBalance, debtor.netBalance);
+
+                    if (amount > 0.01) {
+                        settlements.push({
+                            from: debtor.participantId,
+                            fromName: debtor.participantName,
+                            to: creditor.participantId,
+                            toName: creditor.participantName,
+                            amount: Math.round(amount * 100) / 100
+                        });
+                    }
+
+                    creditor.netBalance -= amount;
+                    debtor.netBalance -= amount;
+
+                    if (creditor.netBalance < 0.01) i++;
+                    if (debtor.netBalance < 0.01) j++;
+                }
+
+                return settlements;
+            }
+        }
+
+        // App state
+        const storage = new Storage();
+        let currentView = 'splits';
+        let currentSplit = null;
+
+        // UI Helpers
+        function showView(view) {
+            document.getElementById('splitsView').classList.add('hidden');
+            document.getElementById('splitDetailView').classList.add('hidden');
+            document.getElementById('settingsView').classList.add('hidden');
+            
+            if (view === 'splits') {
+                document.getElementById('splitsView').classList.remove('hidden');
+                renderSplits();
+            } else if (view === 'detail') {
+                document.getElementById('splitDetailView').classList.remove('hidden');
+                renderSplitDetail();
+            } else if (view === 'settings') {
+                document.getElementById('settingsView').classList.remove('hidden');
+                document.getElementById('currencySelect').value = storage.settings.currency;
+            }
+            currentView = view;
+        }
+
+        function showConfirm(message, onYes) {
+            const modal = document.getElementById('confirmModal');
+            document.getElementById('confirmMessage').textContent = message;
+            modal.classList.add('active');
+
+            const handleYes = () => {
+                onYes();
+                modal.classList.remove('active');
+                cleanup();
+            };
+
+            const handleNo = () => {
+                modal.classList.remove('active');
+                cleanup();
+            };
+
+            const cleanup = () => {
+                document.getElementById('confirmYes').removeEventListener('click', handleYes);
+                document.getElementById('confirmNo').removeEventListener('click', handleNo);
+            };
+
+            document.getElementById('confirmYes').addEventListener('click', handleYes);
+            document.getElementById('confirmNo').addEventListener('click', handleNo);
+        }
+
+        function getInitials(name) {
+            return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+        }
+
+        function showToast(message) {
+            // Simple toast - could be enhanced
+            alert(message);
+        }
+
+        // Render Functions
+        function renderSplits() {
+            const splits = storage.getSplits();
+            const container = document.getElementById('splitsList');
+
+            if (splits.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-12">
+                        <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-white/10 flex items-center justify-center">
+                            <i class="fas fa-users text-3xl text-white/50"></i>
+                        </div>
+                        <p class="text-white/60 text-lg mb-2">No splits yet</p>
+                        <p class="text-white/40 text-sm">Create your first split to get started</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = splits.map(split => `
+                <div class="list-item cursor-pointer" onclick="selectSplit('${split.id}')">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="text-lg font-semibold text-white">${split.name}</h3>
+                            <p class="text-sm text-white/50">
+                                Created ${new Date(split.createdAt).toLocaleDateString()}
+                            </p>
+                        </div>
+                        <i class="fas fa-chevron-right text-white/50"></i>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderSplitDetail() {
+            if (!currentSplit) return;
+
+            document.getElementById('splitName').textContent = currentSplit.name;
+            document.getElementById('splitDate').textContent = 
+                `Created ${new Date(currentSplit.createdAt).toLocaleDateString()}`;
+
+            renderParticipants();
+            renderExpenses();
+            renderBalances();
+        }
+
+        function renderParticipants() {
+            const participants = storage.getParticipants(currentSplit.id);
+            const container = document.getElementById('participantsList');
+            const paidBySelect = document.getElementById('paidBy');
+
+            if (participants.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8">
+                        <div class="w-12 h-12 mx-auto mb-3 rounded-full bg-white/10 flex items-center justify-center">
+                            <i class="fas fa-users text-2xl text-white/50"></i>
+                        </div>
+                        <p class="text-white/60">No participants yet</p>
+                    </div>
+                `;
+                paidBySelect.innerHTML = '<option value="">Select who paid</option>';
+                updateSplitAmongOptions();
+                return;
+            }
+
+            container.innerHTML = participants.map(p => `
+                <div class="list-item flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="avatar">${getInitials(p.name)}</div>
+                        <span class="text-white font-medium">${p.name}</span>
+                    </div>
+                    <button onclick="deleteParticipant('${p.id}')" class="glass-button btn-ghost w-10 h-10 rounded-full p-0">
+                        <i class="fas fa-trash text-red-400"></i>
+                    </button>
+                </div>
+            `).join('');
+
+            paidBySelect.innerHTML = '<option value="">Select who paid</option>' +
+                participants.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+
+            updateSplitAmongOptions();
+        }
+
+        function updateSplitAmongOptions() {
+            const participants = storage.getParticipants(currentSplit.id);
+            const equalContainer = document.getElementById('splitAmongCheckboxes');
+            const unequalContainer = document.getElementById('unequalSharesInputs');
+
+            const html = participants.map(p => `
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" value="${p.id}" class="split-participant w-4 h-4" checked>
+                    <span class="text-white">${p.name}</span>
+                </label>
+            `).join('');
+
+            equalContainer.innerHTML = html;
+
+            unequalContainer.innerHTML = participants.map(p => `
+                <div class="flex items-center gap-2">
+                    <input type="checkbox" value="${p.id}" class="unequal-participant w-4 h-4" checked>
+                    <span class="text-white flex-1">${p.name}</span>
+                    <input type="number" step="0.01" min="0" placeholder="0.00" 
+                        class="glass-input w-32 unequal-share" data-participant="${p.id}">
+                </div>
+            `).join('');
+        }
+
+        function renderExpenses() {
+            const expenses = storage.getExpenses(currentSplit.id);
+            const container = document.getElementById('expensesList');
+            const currency = storage.settings.currency;
+
+            if (expenses.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8">
+                        <div class="w-12 h-12 mx-auto mb-3 rounded-full bg-white/10 flex items-center justify-center">
+                            <i class="fas fa-receipt text-2xl text-white/50"></i>
+                        </div>
+                        <p class="text-white/60">No expenses yet</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const participants = storage.getParticipants(currentSplit.id);
+            const getName = (id) => participants.find(p => p.id === id)?.name || 'Unknown';
+
+            container.innerHTML = expenses.map(expense => {
+                const shares = expense.shares ? JSON.parse(expense.shares) : {};
+                const splitInfo = expense.splitType === 'equal' 
+                    ? `Split equally among ${expense.splitAmong.length} people`
+                    : 'Split unequally';
+
+                return `
+                    <div class="list-item">
+                        <div class="flex justify-between mb-2">
+                            <h4 class="text-white font-semibold text-lg">${expense.description}</h4>
+                            <span class="text-white font-bold text-lg">${currency}${expense.amount.toFixed(2)}</span>
+                        </div>
+                        <p class="text-white/50 text-sm mb-3">
+                            Paid by ${getName(expense.paidBy)} • ${splitInfo}
+                        </p>
+                        <div class="flex justify-between items-center">
+                            <span class="text-white/40 text-xs">
+                                ${new Date(expense.createdAt).toLocaleDateString()}
+                            </span>
+                            <button onclick="deleteExpense('${expense.id}')" class="glass-button btn-ghost text-sm px-3 py-1">
+                                <i class="fas fa-trash mr-1"></i>Delete
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderBalances() {
+            const balances = storage.calculateBalances(currentSplit.id);
+            const settlements = storage.calculateSettlements(currentSplit.id);
+            const container = document.getElementById('balancesList');
+            const currency = storage.settings.currency;
+
+            if (balances.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8">
+                        <div class="w-12 h-12 mx-auto mb-3 rounded-full bg-white/10 flex items-center justify-center">
+                            <i class="fas fa-scale-balanced text-2xl text-white/50"></i>
+                        </div>
+                        <p class="text-white/60">No balances to show</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const balancesHtml = balances.map(b => {
+                const colorClass = b.netBalance > 0 ? 'balance-positive' : 
+                                 b.netBalance < 0 ? 'balance-negative' : '';
+                const textColor = b.netBalance > 0 ? 'text-green-400' : 
+                                b.netBalance < 0 ? 'text-red-400' : 'text-white/60';
+                const icon = b.netBalance > 0 ? 'trending-up' : 
+                           b.netBalance < 0 ? 'trending-down' : 'equals';
+                const status = b.netBalance > 0 ? 'is owed' : 
+                             b.netBalance < 0 ? 'owes' : 'settled';
+
+                return `
+                    <div class="list-item ${colorClass}">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <i class="fas fa-${icon} ${textColor}"></i>
+                                <span class="text-white font-medium">${b.participantName}</span>
+                            </div>
+                            <div class="text-right">
+                                <p class="${textColor} font-bold text-lg">
+                                    ${b.netBalance >= 0 ? '+' : ''}${currency}${b.netBalance.toFixed(2)}
+                                </p>
+                                <p class="text-white/50 text-xs">${status}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            let settlementsHtml = '';
+            if (settlements.length > 0) {
+                settlementsHtml = `
+                    <h3 class="text-lg font-semibold text-white/80 mt-6 mb-3">Suggested Settlements</h3>
+                    <p class="text-white/50 text-sm mb-3">Minimize transactions with these payments:</p>
+                    ${settlements.map(s => `
+                        <div class="list-item" style="background: rgba(79, 70, 229, 0.1); border-color: rgba(79, 70, 229, 0.3);">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-3 flex-1">
+                                    <span class="text-white font-medium">${s.fromName}</span>
+                                    <i class="fas fa-arrow-right text-indigo-400"></i>
+                                    <span class="text-white font-medium">${s.toName}</span>
+                                </div>
+                                <span class="text-indigo-400 font-bold text-lg">
+                                    ${currency}${s.amount.toFixed(2)}
+                                </span>
+                            </div>
+                        </div>
+                    `).join('')}
+                `;
+            }
+
+            container.innerHTML = `
+                <h3 class="text-lg font-semibold text-white/80 mb-3">Individual Balances</h3>
+                ${balancesHtml}
+                ${settlementsHtml}
+            `;
+        }
+
+        // Event Handlers
+        function selectSplit(id) {
+            const splits = storage.getSplits();
+            currentSplit = splits.find(s => s.id === id);
+            if (currentSplit) {
+                showView('detail');
+            }
+        }
+
+        function deleteParticipant(id) {
+            showConfirm('Delete this participant? All related expenses will also be deleted.', () => {
+                storage.deleteParticipant(id);
+                renderSplitDetail();
+            });
+        }
+
+        function deleteExpense(id) {
+            showConfirm('Delete this expense?', () => {
+                storage.deleteExpense(id);
+                renderSplitDetail();
+            });
+        }
+
+        // Event Listeners
+        document.getElementById('createSplitBtn').addEventListener('click', () => {
+            const name = document.getElementById('newSplitName').value.trim();
+            if (!name) {
+                showToast('Please enter a split name');
+                return;
+            }
+            storage.createSplit(name);
+            document.getElementById('newSplitName').value = '';
+            renderSplits();
+        });
+
+        document.getElementById('backBtn').addEventListener('click', () => {
+            currentSplit = null;
+            showView('splits');
+        });
+
+        document.getElementById('deleteSplitBtn').addEventListener('click', () => {
+            showConfirm('Delete this entire split? All data will be permanently removed.', () => {
+                storage.deleteSplit(currentSplit.id);
+                currentSplit = null;
+                showView('splits');
+            });
+        });
+
+        document.getElementById('addParticipantBtn').addEventListener('click', () => {
+            const name = document.getElementById('newParticipantName').value.trim();
+            if (!name) {
+                showToast('Please enter a participant name');
+                return;
+            }
+            storage.createParticipant(currentSplit.id, name);
+            document.getElementById('newParticipantName').value = '';
+            renderSplitDetail();
+        });
+
+        document.querySelectorAll('input[name="splitType"]').forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                const isEqual = e.target.value === 'equal';
+                document.getElementById('equalSplitSection').classList.toggle('hidden', !isEqual);
+                document.getElementById('unequalSplitSection').classList.toggle('hidden', isEqual);
+            });
+        });
+
+        document.getElementById('addExpenseBtn').addEventListener('click', () => {
+            const description = document.getElementById('expenseDescription').value.trim();
+            const amount = parseFloat(document.getElementById('expenseAmount').value);
+            const paidBy = document.getElementById('paidBy').value;
+            const splitType = document.querySelector('input[name="splitType"]:checked').value;
+
+            if (!description) {
+                showToast('Please enter a description');
+                return;
+            }
+            if (!amount || amount <= 0) {
+                showToast('Please enter a valid amount');
+                return;
+            }
+            if (!paidBy) {
+                showToast('Please select who paid');
+                return;
+            }
+
+            let splitAmong, shares = null;
+
+            if (splitType === 'equal') {
+                splitAmong = Array.from(document.querySelectorAll('.split-participant:checked'))
+                    .map(cb => cb.value);
+            } else {
+                const checked = Array.from(document.querySelectorAll('.unequal-participant:checked'));
+                splitAmong = checked.map(cb => cb.value);
+                
+                const sharesObj = {};
+                let total = 0;
+                
+                splitAmong.forEach(id => {
+                    const input = document.querySelector(`.unequal-share[data-participant="${id}"]`);
+                    const val = parseFloat(input.value) || 0;
+                    sharesObj[id] = val;
+                    total += val;
+                });
+
+                if (Math.abs(total - amount) > 0.01) {
+                    showToast(`Shares must add up to ${storage.settings.currency}${amount.toFixed(2)}. Current: ${storage.settings.currency}${total.toFixed(2)}`);
+                    return;
+                }
+
+                shares = JSON.stringify(sharesObj);
+            }
+
+            if (splitAmong.length === 0) {
+                showToast('Please select at least one participant');
+                return;
+            }
+
+            storage.createExpense({
+                splitId: currentSplit.id,
+                description,
+                amount,
+                paidBy,
+                splitType,
+                splitAmong,
+                shares
+            });
+
+            document.getElementById('expenseDescription').value = '';
+            document.getElementById('expenseAmount').value = '';
+            renderSplitDetail();
+        });
+
+        document.getElementById('exportBtn').addEventListener('click', () => {
+            const balances = storage.calculateBalances(currentSplit.id);
+            const settlements = storage.calculateSettlements(currentSplit.id);
+            const currency = storage.settings.currency;
+
+            const lines = [
+                '=== SPLIT SUMMARY ===',
+                `Split: ${currentSplit.name}`,
+                `Date: ${new Date().toLocaleDateString()}`,
+                '',
+                'BALANCES:',
+                ...balances.map(b => 
+                    `${b.participantName}: ${b.netBalance >= 0 ? '+' : ''}${currency}${b.netBalance.toFixed(2)}`
+                ),
+                '',
+                'SUGGESTED SETTLEMENTS:',
+                ...settlements.map(s => 
+                    `${s.fromName} pays ${s.toName}: ${currency}${s.amount.toFixed(2)}`
+                ),
+            ];
+
+            const text = lines.join('\n');
+            const blob = new Blob([text], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${currentSplit.name}-summary.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+        });
+
+        document.getElementById('settingsBtn').addEventListener('click', () => {
+            showView('settings');
+        });
+
+        document.getElementById('backFromSettingsBtn').addEventListener('click', () => {
+            showView(currentSplit ? 'detail' : 'splits');
+        });
+
+        document.getElementById('cancelSettingsBtn').addEventListener('click', () => {
+            showView(currentSplit ? 'detail' : 'splits');
+        });
+
+        document.getElementById('saveSettingsBtn').addEventListener('click', () => {
+            const currency = document.getElementById('currencySelect').value;
+            storage.settings.currency = currency;
+            storage.saveData();
+            showToast('Settings saved!');
+            if (currentSplit) {
+                renderBalances();
+                renderExpenses();
+            }
+            showView(currentSplit ? 'detail' : 'splits');
+        });
+
+        // Initialize
+        showView('splits');
+
+        // Register Service Worker for PWA
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js').catch(() => {
+                console.log('Service worker registration failed (normal if sw.js not present)');
+            });
+        }
+    </script>
+</body>
+</html>
